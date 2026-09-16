@@ -1,0 +1,67 @@
+{
+  "name": "chamada-grupo",
+  "productName": "Chamada em Grupo",
+  "version": "1.0.0",
+  "description": "Chamadas de vídeo em grupo com compartilhamento de tela, soundboard e efeitos de voz",
+  "main": "main.js",
+  "author": "Renan",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder --win",
+    "dist:all": "electron-builder -wml",
+    "icon": "electron build/make-icon.js"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "br.com.renan.chamadagrupo",
+    "productName": "Chamada em Grupo",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "shortcutName": "Chamada em Grupo",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "runAfterFinish": true,
+      "language": "1046"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.social-networking",
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network",
+      "icon": "build/icon.png"
+    }
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  }
+}

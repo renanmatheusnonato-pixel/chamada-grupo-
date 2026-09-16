@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data:; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src *; media-src 'self' blob: mediastream: data:; img-src 'self' data: blob: https://cdn.jsdelivr.net;">
+  <title>Chamada em Grupo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ============ Boas-vindas / criar perfil ============ -->
+  <section id="welcome" class="screen welcome hidden">
+    <div class="welcome-card">
+      <div class="brand-logo" id="welcomeLogo">🎥</div>
+      <h1 id="welcomeTitle">Chamada em Grupo</h1>
+      <p class="sub" id="welcomeTagline"></p>
+      <label class="field">
+        <span>Como você quer ser chamado?</span>
+        <input id="welcomeName" type="text" maxlength="32" placeholder="Seu nome de usuário" autocomplete="off">
+        <small>Seus amigos vão te adicionar por esse nome.</small>
+      </label>
+      <details class="advanced">
+        <summary>⚙️ Servidor / já tenho uma conta</summary>
+        <label class="field">
+          <span>Endereço do servidor</span>
+          <input id="welcomeServer" type="text" placeholder="wss://seu-servidor.onrender.com" autocomplete="off">
+        </label>
+        <label class="field">
+          <span>Código de acesso (para usar sua conta em outro PC)</span>
+          <input id="welcomeToken" type="text" placeholder="cole aqui o código copiado nas configurações" autocomplete="off">
+        </label>
+      </details>
+      <button id="welcomeBtn" class="primary big">Começar</button>
+      <p id="welcomeStatus" class="status"></p>
+    </div>
+  </section>
+
+  <!-- ============ Aplicativo ============ -->
+  <div id="app" class="app hidden">
+    <nav class="rail" id="rail"></nav>
+
+    <aside class="sidebar">
+      <div id="sidebar" class="sidebar-content"></div>
+      <div id="voicePanel" class="voice-panel hidden"></div>
+      <div id="userPanel" class="user-panel"></div>
+    </aside>
+
+    <main class="main">
+      <header id="mainHeader" class="main-header"></header>
+      <section id="callArea" class="call-area hidden"></section>
+      <section id="content" class="content"></section>
+      <footer id="composer" class="composer hidden">
+        <textarea id="composerInput" rows="1" placeholder="Mensagem"></textarea>
+        <button id="composerEmoji" class="icon-btn" title="Emojis"></button>
+        <button id="composerSend" class="icon-btn" title="Enviar (Enter)"></button>
+      </footer>
+    </main>
+
+    <aside id="members" class="members hidden"></aside>
+  </div>
+
+  <!-- Popover: soundboard / efeitos de voz -->
+  <div id="popover" class="popover hidden">
+    <nav class="tabs">
+      <button class="tab active" data-tab="sfx">🔊 Sons</button>
+      <button class="tab" data-tab="voice">🎙️ Voz</button>
+    </nav>
+    <div class="tab-content" id="tab-sfx">
+      <div class="sliders">
+        <label>Volume dos sons <span id="sfxVolLabel">80%</span><input id="sfxVol" type="range" min="0" max="1" step="0.01" value="0.8"></label>
+        <label>Ouvir meus sons <span id="monVolLabel">60%</span><input id="monVol" type="range" min="0" max="1" step="0.01" value="0.6"></label>
+      </div>
+      <div id="soundGrid" class="sound-grid"></div>
+      <div class="sfx-actions">
+        <label class="upload">➕ Adicionar som<input id="soundUpload" type="file" accept="audio/*" multiple hidden></label>
+        <button id="stopSounds" class="ghost">⏹ Parar</button>
+      </div>
+      <p class="hint">Teclas <kbd>1</kbd>–<kbd>9</kbd> tocam os primeiros sons (com o chat fora de foco). <span id="globalHotkeyHint" class="hidden">Em segundo plano: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1‑9</kbd>, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>0</kbd> para parar, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> mudo.</span></p>
+    </div>
+    <div class="tab-content hidden" id="tab-voice">
+      <p class="hint">Aplicado em tempo real na sua voz — todos ouvem.</p>
+      <div id="effectList" class="effect-list"></div>
+      <p id="pitchWarning" class="warn hidden">Efeitos de tom indisponíveis neste ambiente.</p>
+    </div>
+  </div>
+
+  <!-- Modal genérico -->
+  <div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
+
+  <!-- Seletor de tela/janela (Electron) -->
+  <div id="pickerModal" class="modal hidden">
+    <div class="modal-card wide">
+      <header><h2>O que você quer compartilhar?</h2><button id="pickerCancel" class="ghost">✕</button></header>
+      <nav class="tabs">
+        <button class="tab active" data-kind="screen">🖥️ Telas</button>
+        <button class="tab" data-kind="window">🪟 Janelas</button>
+      </nav>
+      <div id="pickerList" class="picker-list"></div>
+      <footer>
+        <label id="pickerAudioWrap"><input id="pickerAudio" type="checkbox"> Compartilhar também o áudio do computador</label>
+        <button id="pickerConfirm" class="primary" disabled>Compartilhar</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="emojiPicker" class="emoji-picker hidden"></div>
+  <div id="rings" class="rings"></div>
+  <div id="toasts" class="toasts"></div>
+  <div id="voiceMedia" hidden></div>
+
+  <script src="branding.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/emoji.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/signaling.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sounds.js"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

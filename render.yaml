@@ -1,0 +1,19 @@
+# Deploy do servidor no Render com 1 clique (Blueprint): https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: chamada-grupo-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATA_FILE
+        value: /var/data/data.json
+    disk:
+      name: dados
+      mountPath: /var/data
+      sizeGB: 1
