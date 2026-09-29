@@ -7,5 +7,5 @@ window.BRANDING = {
   accent2: '#ff5c8a',                 // segunda cor do gradiente do logo
   online: '#3ecf8e',
   // Servidor padrão sugerido na primeira abertura (troque pelo seu wss://... depois de publicar)
-  defaultServer: 'ws://localhost:3000',
+  defaultServer: 'wss://chamada-grupo-server.onrender.com',
 };
