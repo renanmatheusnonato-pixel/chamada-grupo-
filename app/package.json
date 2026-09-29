@@ -1,7 +1,7 @@
 {
   "name": "chamada-grupo",
   "productName": "Chamada em Grupo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chamadas de vídeo em grupo com compartilhamento de tela, soundboard e efeitos de voz",
   "main": "main.js",
   "author": "Renan",
@@ -11,7 +11,8 @@
     "dev": "electron . --dev",
     "dist": "electron-builder --win",
     "dist:all": "electron-builder -wml",
-    "icon": "electron build/make-icon.js"
+    "icon": "electron build/make-icon.js",
+    "release": "electron-builder --win --publish always"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -33,7 +34,7 @@
         "nsis"
       ],
       "icon": "build/icon.ico",
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "ChamadaEmGrupo-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -59,9 +60,19 @@
       ],
       "category": "Network",
       "icon": "build/icon.png"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "renanmatheusnonato-pixel",
+        "repo": "chamada-grupo-"
+      }
+    ]
   },
   "allowScripts": {
     "electron@33.4.11": true
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

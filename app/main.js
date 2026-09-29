@@ -1,9 +1,30 @@
 const { app, BrowserWindow, session, desktopCapturer, ipcMain, dialog, globalShortcut, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
+const { autoUpdater } = require('electron-updater');
 
 let win = null;
 const isDev = process.argv.includes('--dev');
+
+// Atualização automática: baixa em segundo plano e instala ao fechar (ou na hora, se o usuário quiser).
+function setupAutoUpdate() {
+  if (isDev || !app.isPackaged) return;
+  autoUpdater.autoDownload = true;
+  autoUpdater.on('update-downloaded', async ({ version }) => {
+    const { response } = await dialog.showMessageBox(win, {
+      type: 'info',
+      buttons: ['Reiniciar agora', 'Depois'],
+      defaultId: 0,
+      title: 'Atualização disponível',
+      message: `A versão ${version} foi baixada.`,
+      detail: 'Reinicie para usar a versão nova. Se escolher "Depois", ela será instalada quando você fechar o app.',
+    });
+    if (response === 0) autoUpdater.quitAndInstall();
+  });
+  autoUpdater.on('error', (e) => console.error('Erro ao atualizar:', e.message));
+  autoUpdater.checkForUpdates().catch(() => {});
+  setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 6 * 60 * 60 * 1000);
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -75,6 +96,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  setupAutoUpdate();
 
   // Atalhos globais (funcionam mesmo com o app em segundo plano)
   for (let i = 1; i <= 9; i++) {

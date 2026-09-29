@@ -76,6 +76,25 @@ Antes de distribuir, coloque o endereço público do seu servidor em `branding.j
 
 O deploy do servidor também pode ser feito com o Blueprint [`render.yaml`](render.yaml) (Render → New → Blueprint → escolher o repositório).
 
+## Publicando uma atualização (auto-update)
+
+O app instalado checa atualizações ao abrir e a cada 6 h, baixa sozinho e avisa "Reiniciar agora / Depois". A fonte é a aba **Releases** do repositório no GitHub.
+
+Para lançar uma versão nova:
+
+1. Suba a versão em `app/package.json` (ex.: `1.0.1` → `1.0.2`).
+2. ```bash
+   cd app && npx electron-builder --win --publish never
+   ```
+3. No GitHub → **Releases** → **Draft a new release** → *Tag*: `v1.0.2` → arraste os **3 arquivos** de `app/dist/`:
+   `ChamadaEmGrupo-Setup-1.0.2.exe`, o `.blockmap` e o `latest.yml` → **Publish release**.
+
+Pronto: em até 6 h (ou na próxima vez que abrirem) todos recebem a atualização.
+
+> O nome do arquivo não pode ter espaços — o GitHub renomeia e o updater não acha o download.
+> Alternativa ao passo 3: criar um token do GitHub (`repo`), exportá-lo em `GH_TOKEN` e rodar `npm run release`, que publica sozinho.
+> O repositório precisa ser **público** (ou o updater exige token em cada máquina).
+
 ## Como funciona (para desenvolvedores)
 
 - `server/server.js` — protocolo JSON sobre WebSocket; cada grupo tem `roles`, `memberRoles` e `everyone` (permissões base). Toda ação sensível é validada no servidor (`requireGroup(user, groupId, perm)`). Fotos/banners são salvos como data URL redimensionada (256×256 / 960×340).
