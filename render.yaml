@@ -1,4 +1,6 @@
-# Deploy do servidor no Render com 1 clique (Blueprint): https://render.com/docs/blueprint-spec
+# Deploy do servidor no Render (Blueprint): https://render.com/docs/blueprint-spec
+# ponytail: plano free não aceita disco — data.json é apagado a cada reinício/deploy.
+# Para o histórico persistir, mude plan para "starter" e volte a declarar o bloco disk.
 services:
   - type: web
     name: chamada-grupo-server
@@ -11,9 +13,3 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: DATA_FILE
-        value: /var/data/data.json
-    disk:
-      name: dados
-      mountPath: /var/data
-      sizeGB: 1
