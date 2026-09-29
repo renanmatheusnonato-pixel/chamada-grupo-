@@ -616,7 +616,9 @@
       if (!el) {
         el = document.createElement('div'); el.className = 'tile'; el.dataset.id = t.id;
         el.appendChild(t.video);
-        el.insertAdjacentHTML('beforeend', `${avatarHtml({ id: t.id, name: t.name, color: t.color, avatar: t.avatar }, '', false)}<div class="label"><span class="nm"></span><span class="bd"></span></div><span class="conn"></span>`);
+        el.insertAdjacentHTML('beforeend', `${avatarHtml({ id: t.id, name: t.name, color: t.color, avatar: t.avatar }, '', false)}<div class="label"><span class="nm"></span><span class="bd"></span></div><span class="conn"></span><button class="tile-full icon-btn" title="Tela cheia (duplo clique)">${ICON.expand}</button>`);
+        el.querySelector('.tile-full').onclick = (e) => { e.stopPropagation(); toggleTileFullscreen(el); };
+        el.ondblclick = () => toggleTileFullscreen(el);
         tilesEl.appendChild(el);
       }
       el.classList.toggle('local', t.isLocal); el.classList.toggle('has-video', t.hasVideo); el.classList.toggle('sharing', t.sharing);
@@ -648,6 +650,17 @@
       const r = $('#recTimer'); if (r && v.recording) r.textContent = fmtTime(Date.now() - v.recStartedAt);
     }, 1000);
   }
+
+  // Tela cheia de um participante/transmissão (Fullscreen API nativa; Esc sai)
+  function toggleTileFullscreen(el) {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (el.classList.contains('has-video')) el.requestFullscreen().catch((e) => toast('Não foi possível abrir em tela cheia: ' + e.message, 'error'));
+    else toast('Essa pessoa não está com câmera nem compartilhando a tela.');
+  }
+  document.addEventListener('fullscreenchange', () => {
+    document.body.classList.toggle('has-fullscreen', !!document.fullscreenElement);
+    for (const b of $$('.tile-full')) b.innerHTML = b.closest('.tile') === document.fullscreenElement ? ICON.shrink : ICON.expand;
+  });
 
   function renderVoicePanel() {
     const p = $('#voicePanel'); const v = S.voice;

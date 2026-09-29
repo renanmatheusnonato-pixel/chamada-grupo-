@@ -464,3 +464,14 @@ img.emoji { width: 1.25em; height: 1.25em; vertical-align: -0.25em; display: inl
 
 .mic-meter { height: 10px; border-radius: 6px; background: var(--bg-0); overflow: hidden; border: 1px solid var(--border); }
 .mic-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--online), var(--warn)); transition: width .05s linear; }
+
+/* ---------- Tela cheia de um participante ---------- */
+.tile-full { position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; background: rgba(0,0,0,.55); color: #fff; opacity: 0; transition: opacity .12s; }
+.tile-full .ico-svg { width: 15px; height: 15px; }
+.tile:hover .tile-full { opacity: 1; }
+.tile:not(.has-video) .tile-full { display: none; }
+.tile:fullscreen { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; background: #000; }
+.tile:fullscreen video { object-fit: contain; }
+.tile:fullscreen .label { left: 16px; bottom: 16px; font-size: 1rem; padding: 6px 14px; }
+.tile:fullscreen .tile-full { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+.tile:fullscreen .tile-full .ico-svg { width: 20px; height: 20px; }
