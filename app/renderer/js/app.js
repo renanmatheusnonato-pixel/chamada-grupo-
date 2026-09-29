@@ -667,9 +667,14 @@
 
   // Tela cheia de um participante/transmissão (Fullscreen API nativa; Esc sai)
   function toggleTileFullscreen(el) {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (el.classList.contains('has-video')) el.requestFullscreen().catch((e) => toast('Não foi possível abrir em tela cheia: ' + e.message, 'error'));
-    else toast('Essa pessoa não está com câmera nem compartilhando a tela.');
+    if (document.fullscreenElement) return document.exitFullscreen();
+    if (!el.classList.contains('has-video')) return toast('Essa pessoa não está com câmera nem compartilhando a tela.');
+    // Ver a própria tela inteira em tela cheia vira "espelho infinito" e não mostra nada de útil
+    if (el.classList.contains('local') && S.voice?.sharing
+        && S.voice.screenStream?.getVideoTracks()[0]?.getSettings().displaySurface === 'monitor') {
+      return toast('Você está compartilhando a tela inteira — vê-la aqui cria um efeito de espelho. Os outros estão vendo normalmente.', '', 6000);
+    }
+    el.requestFullscreen().catch((e) => toast('Não foi possível abrir em tela cheia: ' + e.message, 'error'));
   }
   document.addEventListener('fullscreenchange', () => {
     document.body.classList.toggle('has-fullscreen', !!document.fullscreenElement);
