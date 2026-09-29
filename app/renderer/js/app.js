@@ -501,10 +501,51 @@
     if (S.micStream && S.micStream.active) return S.micStream;
     const base = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
     const tries = [settings.micId ? { audio: { ...base, deviceId: { exact: settings.micId } } } : null, { audio: base }].filter(Boolean);
-    for (const c of tries) { try { S.micStream = await navigator.mediaDevices.getUserMedia(c); break; } catch (e) { console.warn('mic:', e.name); } }
-    if (S.micStream) S.engine.setMicStream(S.micStream); else toast('Microfone indisponível — você ainda ouve os outros e pode usar a soundboard.', 'error', 6000);
+    let err = null;
+    for (const c of tries) { try { S.micStream = await navigator.mediaDevices.getUserMedia(c); err = null; break; } catch (e) { err = e; console.warn('mic:', e.name, e.message); } }
+    if (S.micStream) S.engine.setMicStream(S.micStream);
+    else toast('Microfone indisponível (' + micErrorText(err) + '). Use ⚙️ → Testar microfone.', 'error', 8000);
     return S.micStream;
   }
+  function micErrorText(e) {
+    const m = {
+      NotAllowedError: 'acesso negado pelo Windows ou pelo app',
+      NotFoundError: 'nenhum microfone encontrado',
+      NotReadableError: 'outro programa está usando o microfone',
+      OverconstrainedError: 'o microfone escolhido nas configurações não existe mais',
+      AbortError: 'o Windows interrompeu o acesso',
+    };
+    return e ? (m[e.name] || e.name) : 'motivo desconhecido';
+  }
+
+  // Teste: abre o microfone escolhido e mostra o volume em tempo real
+  async function testMic(box, deviceId) {
+    box.innerHTML = '<p class="hint">Abrindo o microfone…</p>';
+    let stream;
+    const base = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: deviceId ? { ...base, deviceId: { exact: deviceId } } : base }); }
+    catch (e) {
+      box.innerHTML = `<p class="warn">Falhou: ${esc(micErrorText(e))} <small>(${esc(e.name)})</small></p>`
+        + `<p class="hint">Verifique em Configurações do Windows → Privacidade → Microfone se "Permitir que aplicativos da área de trabalho acessem seu microfone" está ligado, e feche programas que possam estar usando o microfone.</p>`;
+      return;
+    }
+    const label = stream.getAudioTracks()[0]?.label || 'microfone';
+    box.innerHTML = `<p class="hint">Conectado em <b>${esc(label)}</b> — fale para ver a barra mexer:</p><div class="mic-meter"><i></i></div>`;
+    const bar = box.querySelector('.mic-meter i');
+    const ctx = new AudioContext();
+    const an = ctx.createAnalyser(); an.fftSize = 512;
+    ctx.createMediaStreamSource(stream).connect(an);
+    const data = new Uint8Array(an.frequencyBinCount);
+    const tick = () => {
+      if (!box.isConnected) { stream.getTracks().forEach((t) => t.stop()); ctx.close(); return; }
+      an.getByteTimeDomainData(data);
+      let peak = 0; for (const v of data) peak = Math.max(peak, Math.abs(v - 128));
+      bar.style.width = Math.min(100, (peak / 64) * 100) + '%';
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
   async function ensureCamera() {
     if (S.camStream?.getVideoTracks()[0]?.readyState === 'live') return S.camStream.getVideoTracks()[0];
     const video = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } };
@@ -915,6 +956,7 @@
         <button type="button" data-t="light" class="${settings.theme === 'light' ? 'sel' : ''}"><span class="sw light"></span>Claro</button>
         <button type="button" data-t="system" class="${settings.theme === 'system' ? 'sel' : ''}"><span class="sw sys"></span>Sistema</button></div></div>
       <label class="field"><span>Microfone</span><select id="sMic"></select></label>
+      <div class="field"><button type="button" class="ghost" id="sTestMic">${ICON.mic} Testar microfone</button><div id="sMicTest"></div></div>
       <label class="field"><span>Câmera</span><select id="sCam"></select></label>
       <label class="field"><span>Servidor</span><input id="sServer" type="text" value="${esc(settings.server)}"><small>Trocar o servidor reconecta o app.</small></label>
       <label class="field"><span>Servidor TURN (atravessar roteadores)</span><input id="sTurn" type="text" value="${esc(settings.turnUrl)}"></label>
@@ -929,6 +971,7 @@
       const fill = (sel, kind, cur) => { const list = devices.filter((d) => d.kind === kind); sel.innerHTML = `<option value="">Padrão do sistema</option>` + list.map((d, i) => `<option value="${esc(d.deviceId)}" ${d.deviceId === cur ? 'selected' : ''}>${esc(d.label || (kind === 'audioinput' ? 'Microfone ' : 'Câmera ') + (i + 1))}</option>`).join(''); };
       fill($('#sMic'), 'audioinput', settings.micId); fill($('#sCam'), 'videoinput', settings.camId);
     } catch {}
+    $('#sTestMic').onclick = () => testMic($('#sMicTest'), $('#sMic').value);
     $('#sSave').onclick = async () => {
       const name = $('#sName').value.trim(), server = $('#sServer').value.trim();
       const micId = $('#sMic').value, camId = $('#sCam').value;

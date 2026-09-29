@@ -1,7 +1,7 @@
 {
   "name": "chamada-grupo",
   "productName": "Chamada em Grupo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Chamadas de vídeo em grupo com compartilhamento de tela, soundboard e efeitos de voz",
   "main": "main.js",
   "author": "Renan",

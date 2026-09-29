@@ -80,9 +80,11 @@ app.whenReady().then(() => {
     }
   }, { useSystemPicker: false });
 
-  session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => {
-    cb(['media', 'display-capture', 'notifications', 'clipboard-read', 'clipboard-sanitized-write'].includes(permission));
-  });
+  const ALLOWED = ['media', 'audioCapture', 'videoCapture', 'display-capture', 'notifications', 'clipboard-read', 'clipboard-sanitized-write'];
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(ALLOWED.includes(permission)));
+  // Sem estes dois, o Chromium recusa microfone/câmera em páginas file:// sem mostrar erro claro
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => ALLOWED.includes(permission));
+  session.defaultSession.setDevicePermissionHandler(() => true);
 
   // Salvar arquivo (gravação da chamada)
   ipcMain.handle('save-file', async (_e, { data, defaultName, filters }) => {

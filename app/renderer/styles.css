@@ -461,3 +461,6 @@ img.emoji { width: 1.25em; height: 1.25em; vertical-align: -0.25em; display: inl
 .msg .msg-del .ico-svg { width: 14px; height: 14px; }
 .msg:hover .msg-del { opacity: 1; }
 .msg .msg-del:hover { color: var(--danger); }
+
+.mic-meter { height: 10px; border-radius: 6px; background: var(--bg-0); overflow: hidden; border: 1px solid var(--border); }
+.mic-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--online), var(--warn)); transition: width .05s linear; }
