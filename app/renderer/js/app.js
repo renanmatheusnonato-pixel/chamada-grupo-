@@ -146,6 +146,7 @@
 
   function onAuth(data) {
     S.me = data.user; S.connected = true; S.perms = data.perms || S.perms;
+    watchWebVersion(data.webVersion);
     settings.token = data.token; settings.name = data.user.name; saveSettings();
     S.groups.clear(); data.groups.forEach(setGroup);
     S.friends.clear(); data.friends.forEach((f) => { rememberUser(f); S.friends.set(f.id, S.users.get(f.id)); });
@@ -154,6 +155,19 @@
     $('#welcome').classList.add('hidden'); $('#app').classList.remove('hidden');
     if (isElectron) $('#globalHotkeyHint').classList.remove('hidden');
     openView(S.view);
+  }
+
+  // No navegador, avisa quando o servidor recebe uma versão nova (no app instalado quem cuida disso é o auto-update)
+  function watchWebVersion(version) {
+    if (isElectron || !version || S.webVersion === version) return;
+    if (!S.webVersion) { S.webVersion = version; return; }
+    S.webVersion = version;
+    const el = document.createElement('div');
+    el.className = 'toast ok update-toast';
+    el.innerHTML = `<b>Nova versão disponível</b><br>Recarregue para usar a versão atualizada. <button class="primary small">Recarregar</button>`;
+    el.querySelector('button').onclick = () => location.reload();
+    el.style.pointerEvents = 'auto';
+    $('#toasts').appendChild(el);
   }
 
   // ---------------- Navegação ----------------

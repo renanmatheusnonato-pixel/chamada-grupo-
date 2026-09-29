@@ -8,6 +8,8 @@ const express = require('express');
 const { WebSocketServer } = require('ws');
 
 const PORT = process.env.PORT || 3000;
+// Versão do front: muda a cada deploy, serve para o navegador saber que precisa recarregar
+const WEB_VERSION = process.env.RENDER_GIT_COMMIT || String(Date.now());
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 const MAX_VOICE = Number(process.env.MAX_VOICE || 8);
 const MAX_HISTORY = 2000;
@@ -389,7 +391,8 @@ const handlers = {
 // ---------------- HTTP + WS ----------------
 const app = express();
 app.use(express.static(path.join(__dirname, '..', 'app', 'renderer')));
-app.get('/health', (_req, res) => res.json({ ok: true, usuarios: Object.keys(db.users).length, online: online.size, grupos: Object.keys(db.groups).length }));
+app.get('/health', (_req, res) => res.json({ ok: true, version: WEB_VERSION, usuarios: Object.keys(db.users).length, online: online.size, grupos: Object.keys(db.groups).length }));
+app.get('/version', (_req, res) => res.json({ version: WEB_VERSION }));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, maxPayload: 4 * 1024 * 1024 });
@@ -421,7 +424,7 @@ wss.on('connection', (ws) => {
       online.set(u.id, ws);
       const voice = {};
       for (const [ch, set] of voiceRooms) if (canAccess(u.id, ch)) voice[ch] = [...set].map((id) => publicUser(db.users[id])).filter(Boolean);
-      reply(true, { user: publicUser(u), token: u.token, groups: userGroups(u.id), friends: friendsView(u.id), voice, perms: PERMS });
+      reply(true, { user: publicUser(u), token: u.token, groups: userGroups(u.id), friends: friendsView(u.id), voice, perms: PERMS, webVersion: WEB_VERSION });
       broadcastPresence(u.id);
       console.log(`[online] ${u.name}`);
       return;
